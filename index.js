@@ -6,12 +6,14 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/todolist';
 
-// Middleware
+// 1. Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Connect to MongoDB
+// 2. Database Connection
 mongoose.connect(MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
@@ -19,7 +21,7 @@ mongoose.connect(MONGO_URI, {
 .then(() => console.log('✅ Successfully connected to MongoDB!'))
 .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// Mongoose Schema & Model
+// 3. Schema & Model
 const taskSchema = new mongoose.Schema({
   title: {
     type: String,
@@ -34,9 +36,9 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model('Task', taskSchema);
 
-// API Routes
+// 4. API Routes
 
-// 1. Get all tasks
+// Get all tasks
 app.get('/api/tasks', async (req, res) => {
   try {
     const tasks = await Task.find().sort({ createdAt: -1 });
@@ -47,7 +49,7 @@ app.get('/api/tasks', async (req, res) => {
   }
 });
 
-// 2. Add a new task
+// Add a task
 app.post('/api/tasks', async (req, res) => {
   try {
     const { title } = req.body;
@@ -59,7 +61,6 @@ app.post('/api/tasks', async (req, res) => {
     await newTask.save();
     console.log('✅ Task saved:', title);
 
-    // Express must return JSON response with 201 status code
     res.status(201).json({ success: true, task: newTask });
   } catch (err) {
     console.error('Error saving task:', err);
@@ -67,7 +68,7 @@ app.post('/api/tasks', async (req, res) => {
   }
 });
 
-// 3. Delete a task
+// Delete a task
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
     const { id } = req.params;
@@ -79,11 +80,15 @@ app.delete('/api/tasks/:id', async (req, res) => {
   }
 });
 
-// Serve frontend index.html for root path
-app.get('/(.*)', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+// 5. Fallback Route (Safe replacement for wildcard '*' without path-to-regexp crash)
+app.use((req, res, next) => {
+  if (req.method === 'GET' && !req.path.startsWith('/api')) {
+    return res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  }
+  next();
 });
-// Start Server
+
+// 6. Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
