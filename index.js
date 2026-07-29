@@ -1,99 +1,90 @@
-global.crypto = require('crypto');
-
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/todolist';
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MongoDB Connection
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/tododb';
+// Connect to MongoDB
+mongoose.connect(MONGO_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+})
+.then(() => console.log('✅ Successfully connected to MongoDB!'))
+.catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-mongoose.connect(MONGO_URI)
-  .then(() => console.log('✅ Successfully connected to MongoDB!'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
-
-// Todo Schema
-const TodoSchema = new mongoose.Schema({
-  text: { type: String, required: true },
-  createdAt: { type: Date, default: Date.now }
+// Mongoose Schema & Model
+const taskSchema = new mongoose.Schema({
+  title: {
+    type: String,
+    required: true,
+    trim: true,
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now,
+  },
 });
-const Todo = mongoose.model('Todo', TodoSchema);
 
-// --- REST API Endpoints (All 5 Project Requirements) ---
+const Task = mongoose.model('Task', taskSchema);
 
-// 1. GET /todos — Get all todos
-app.get('/todos', async (req, res) => {
+// API Routes
+
+// 1. Get all tasks
+app.get('/api/tasks', async (req, res) => {
   try {
-    const todos = await Todo.find().sort({ createdAt: -1 });
-    res.status(200).json(todos);
+    const tasks = await Task.find().sort({ createdAt: -1 });
+    res.status(200).json(tasks);
   } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch todos' });
+    console.error('Error fetching tasks:', err);
+    res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
 
-// 2. GET /todos/:id — Get a single todo by id
-app.get('/todos/:id', async (req, res) => {
+// 2. Add a new task
+app.post('/api/tasks', async (req, res) => {
   try {
-    const todo = await Todo.findById(req.params.id);
-    if (!todo) return res.status(404).json({ error: 'Todo not found' });
-    res.status(200).json(todo);
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to fetch todo' });
-  }
-});
-
-// 3. POST /todos — Create a new todo
-app.post('/todos', async (req, res) => {
-  try {
-    const { text } = req.body;
-    if (!text || text.trim() === '') {
-      return res.status(400).json({ error: 'Todo text is required' });
+    const { title } = req.body;
+    if (!title || title.trim() === '') {
+      return res.status(400).json({ error: 'Task title is required' });
     }
-    const newTodo = new Todo({ text: text.trim() });
-    const savedTodo = await newTodo.save();
-    res.status(201).json(savedTodo);
+
+    const newTask = new Task({ title });
+    await newTask.save();
+    console.log('✅ Task saved:', title);
+
+    // Express must return JSON response with 201 status code
+    res.status(201).json({ success: true, task: newTask });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to create todo' });
+    console.error('Error saving task:', err);
+    res.status(500).json({ error: 'Failed to save task' });
   }
 });
 
-// 4. PUT /todos/:id — Update a single todo by id
-app.put('/todos/:id', async (req, res) => {
+// 3. Delete a task
+app.delete('/api/tasks/:id', async (req, res) => {
   try {
-    const { text } = req.body;
-    if (!text || text.trim() === '') {
-      return res.status(400).json({ error: 'Updated text is required' });
-    }
-    const updatedTodo = await Todo.findByIdAndUpdate(
-      req.params.id,
-      { text: text.trim() },
-      { new: true } // Returns updated document
-    );
-    if (!updatedTodo) return res.status(404).json({ error: 'Todo not found' });
-    res.status(200).json(updatedTodo);
+    const { id } = req.params;
+    await Task.findByIdAndDelete(id);
+    res.status(200).json({ success: true, message: 'Task deleted successfully' });
   } catch (err) {
-    res.status(500).json({ error: 'Failed to update todo' });
+    console.error('Error deleting task:', err);
+    res.status(500).json({ error: 'Failed to delete task' });
   }
 });
 
-// 5. DELETE /todos/:id — Delete a single todo by id
-app.delete('/todos/:id', async (req, res) => {
-  try {
-    const deletedTodo = await Todo.findByIdAndDelete(req.params.id);
-    if (!deletedTodo) return res.status(404).json({ error: 'Todo not found' });
-    res.status(200).json({ message: 'Todo deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ error: 'Failed to delete todo' });
-  }
+// Serve frontend index.html for root path
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
