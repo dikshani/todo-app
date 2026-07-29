@@ -80,10 +80,9 @@ app.delete('/api/tasks/:id', async (req, res) => {
 });
 
 // Serve frontend index.html for root path
-app.get('*', (req, res) => {
+app.get('/(.*)', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
-
 // Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
