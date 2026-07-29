@@ -54,18 +54,19 @@ jobs:
                 depends_on:
                   - mongo
                 restart: always
-            
-            mongo: 
-              image: mongo:latest
-              ports:
-                - "27017:27017"
-              volumes:
-                - mongo-data:/data/db
-              restart: always
 
-        volumes: 
-          mongo-data:
-        EOF
+              mongo:
+                image: mongo:latest
+                ports:
+                  - "27017:27017"
+                volumes:
+                  - mongo-data:/data/db
+                restart: always
 
-        docker compose pull
-        docker compose up -d --remove-orphans
+            volumes:
+              mongo-data:
+            EOF
+
+            # Pull latest image and restart containers
+            docker compose pull
+            docker compose up -d --remove-orphans
