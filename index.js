@@ -1,3 +1,7 @@
+if (!global.crypto) {
+  global.crypto = require('crypto').webcrypto || require('crypto');
+}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
