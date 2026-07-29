@@ -6,27 +6,21 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://mongo:27017/todolist';
 
-// 1. Middlewares
+// Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Serve static files from 'public' directory
 app.use(express.static(path.join(__dirname, 'public')));
 
-// 2. Database Connection
-mongoose.connect(MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
-.then(() => console.log('✅ Successfully connected to MongoDB!'))
-.catch((err) => console.error('❌ MongoDB Connection Error:', err));
+// Database Connection
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('✅ Successfully connected to MongoDB!'))
+  .catch((err) => console.error('❌ MongoDB Connection Error:', err));
 
-// 3. Schema & Model
+// Schema
 const taskSchema = new mongoose.Schema({
   title: {
     type: String,
     required: true,
-    trim: true,
   },
   createdAt: {
     type: Date,
@@ -36,51 +30,52 @@ const taskSchema = new mongoose.Schema({
 
 const Task = mongoose.model('Task', taskSchema);
 
-// 4. API Routes
-
-// Get all tasks
+// GET Tasks
 app.get('/api/tasks', async (req, res) => {
   try {
     const tasks = await Task.find().sort({ createdAt: -1 });
-    res.status(200).json(tasks);
+    return res.status(200).json(tasks);
   } catch (err) {
     console.error('Error fetching tasks:', err);
-    res.status(500).json({ error: 'Failed to fetch tasks' });
+    return res.status(500).json({ error: 'Failed to fetch tasks' });
   }
 });
 
-// Add a task
+// POST Task (Accepts title, task, text, or body string)
 app.post('/api/tasks', async (req, res) => {
   try {
-    const { title } = req.body;
-    if (!title || title.trim() === '') {
+    console.log('Received Body:', req.body); // Log exact payload
+
+    // Fallback: Check if user sent 'title', 'task', or 'text'
+    const taskTitle = req.body.title || req.body.task || req.body.text || (typeof req.body === 'string' ? req.body : null);
+
+    if (!taskTitle) {
+      console.error('❌ Validation Failed: No task content provided in req.body');
       return res.status(400).json({ error: 'Task title is required' });
     }
 
-    const newTask = new Task({ title });
+    const newTask = new Task({ title: taskTitle });
     await newTask.save();
-    console.log('✅ Task saved:', title);
+    console.log('✅ Task saved:', taskTitle);
 
-    res.status(201).json({ success: true, task: newTask });
+    return res.status(200).json({ success: true, task: newTask });
   } catch (err) {
-    console.error('Error saving task:', err);
-    res.status(500).json({ error: 'Failed to save task' });
+    console.error('❌ Error saving task:', err);
+    return res.status(500).json({ error: err.message });
   }
 });
 
-// Delete a task
+// DELETE Task
 app.delete('/api/tasks/:id', async (req, res) => {
   try {
-    const { id } = req.params;
-    await Task.findByIdAndDelete(id);
-    res.status(200).json({ success: true, message: 'Task deleted successfully' });
+    await Task.findByIdAndDelete(req.params.id);
+    return res.status(200).json({ success: true });
   } catch (err) {
-    console.error('Error deleting task:', err);
-    res.status(500).json({ error: 'Failed to delete task' });
+    return res.status(500).json({ error: 'Failed to delete task' });
   }
 });
 
-// 5. Fallback Route (Safe replacement for wildcard '*' without path-to-regexp crash)
+// Fallback Middleware
 app.use((req, res, next) => {
   if (req.method === 'GET' && !req.path.startsWith('/api')) {
     return res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -88,7 +83,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// 6. Start Server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
 });
