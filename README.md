@@ -93,7 +93,7 @@ MONGO_URI=mongodb://localhost:27017/todolist node index.js
  
 ### 📸 Screenshot — Local Server Run
  
-./screenshots/local-run.png
+screenshots/local-run.png
  
 ---
  
@@ -124,7 +124,7 @@ docker compose logs api --tail 30
  
 ### 📸 Screenshot — Server Run (Production / EC2)
  
-./screenshots/server-run.png
+screenshots/server-run.png
  
 ---
  
