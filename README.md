@@ -163,13 +163,4 @@ Critical issues faced during development, along with their resolutions:
 
 ---
 
-## 👤 Author
-
-**DevOps Engineering Team**
-Docker Hub Image: [`dikshani12/todo-app`](https://hub.docker.com/r/dikshani12/todo-app)
-
----
-
-## 📄 License
-
-This project is open for educational and personal use.
+https://roadmap.sh/projects/multi-container-service
