@@ -95,9 +95,7 @@ MONGO_URI=mongodb://localhost:27017/todolist node index.js
 
 ### 📸 Screenshot — Local Server Run
 
-> _Add your local server screenshot here (both terminal and browser)._
->
-> `![Local Run](./screenshots/local-run.png)`
+![Local Run](./screenshots/local-run.png)
 
 ---
 
@@ -128,9 +126,7 @@ docker compose logs api --tail 30
 
 ### 📸 Screenshot — Server Run (Production / EC2)
 
-> _Add your deployed server screenshot here (EC2 terminal + live browser output)._
->
-> `![Server Run](./screenshots/server-run.png)`
+![Server Run](./screenshots/server-run.png)
 
 ---
 
@@ -167,4 +163,13 @@ Critical issues faced during development, along with their resolutions:
 
 ---
 
-https://roadmap.sh/projects/multi-container-service
+## 👤 Author
+
+**DevOps Engineering Team**
+Docker Hub Image: [`dikshani12/todo-app`](https://hub.docker.com/r/dikshani12/todo-app)
+
+---
+
+## 📄 License
+
+This project is open for educational and personal use.
