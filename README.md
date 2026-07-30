@@ -93,9 +93,7 @@ MONGO_URI=mongodb://localhost:27017/todolist node index.js
  
 ### 📸 Screenshot — Local Server Run
  
-> _Add your local server screenshot here (both terminal and browser)._
->
-> `![Local Run](./screenshots/local-run.png)`
+./screenshots/local-run.png
  
 ---
  
@@ -126,9 +124,7 @@ docker compose logs api --tail 30
  
 ### 📸 Screenshot — Server Run (Production / EC2)
  
-> _Add your deployed server screenshot here (EC2 terminal + live browser output)._
->
-> `![Server Run](./screenshots/server-run.png)`
+./screenshots/server-run.png
  
 ---
  
